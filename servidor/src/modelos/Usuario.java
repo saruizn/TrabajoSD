@@ -27,4 +27,8 @@ public class Usuario {
         this.nombre=nombre;
     }
 
+    public boolean equals(Object o) {
+        Usuario u=(Usuario)o;
+        return this.nombre.equals(u.nombre);
+    }
 }
