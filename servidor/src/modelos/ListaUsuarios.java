@@ -82,4 +82,11 @@ public class ListaUsuarios {
     public List<Usuario> getUsuarios(){
         return this.usuarios;
     }
+
+    public Usuario getUsuario(String name){
+        for(Usuario u:this.usuarios){
+            if(u.getNombre().equals(name)) return u;
+        }
+        return null;
+    }
 }
