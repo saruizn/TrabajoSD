@@ -44,4 +44,12 @@ public class Usuario {
         }
         return null;
     }
+
+    public List<Archivo> getArchivosCompartidos(String user){
+        List<Archivo> l=new ArrayList<>();
+        for(Archivo a:this.archivos){
+            if(a.tienePermisos(user)) l.add(a);
+        }
+        return l;
+    }
 }

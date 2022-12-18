@@ -17,4 +17,15 @@ public class Archivo {
         return path.substring(path.indexOf("\\recursos\\"+1));
     }
 
+    public boolean tienePermisos(String user){
+        if(!usuariosCompartido.isEmpty()){
+            for(String s: usuariosCompartido){
+                if(s.equals(user)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }
