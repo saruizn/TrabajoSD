@@ -12,9 +12,9 @@ import java.util.concurrent.Executors;
 
 public class Servidor {
 
-    private static ListaUsuarios usuariosSistema;
+    public static ListaUsuarios usuariosSistema;
 
-    private static File carpetaRecursos;
+    public static File carpetaRecursos;
 
     public static void main(String[] args){
         iniciarUsuarios();
@@ -25,10 +25,11 @@ public class Servidor {
             while(true){
                 try{
                     Socket client=ss.accept();
-                    //pool.execute(new AtenderPeticion());  en atenderPetición estará to el meollo, no he creado la clase
+                    pool.execute(new AtenderPeticion(client));
 
-                }catch(Exception e){
+                }catch(IOException e){
                     e.printStackTrace();
+
                 }
             }
         } catch (IOException e) {

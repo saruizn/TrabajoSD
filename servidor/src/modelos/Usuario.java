@@ -52,4 +52,8 @@ public class Usuario {
         }
         return l;
     }
+
+    public List<Archivo> getArchivos(){
+        return this.archivos;
+    }
 }

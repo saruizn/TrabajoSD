@@ -65,9 +65,9 @@ public class ListaUsuarios {
         } catch(Exception ex) {return false;}
     }
 
-    public boolean actualizarSesion(String email,String contrasena,boolean estado){
+    public boolean actualizarSesion(String nombre,String contrasena,boolean estado){
         for(Usuario u:this.usuarios){
-            if(u.getEmail().equals(email) && u.getContrasena().equals(contrasena)){
+            if(u.getNombre().equals(nombre) && u.getContrasena().equals(contrasena)){
                 if (u.getLinea() != estado) {
                     u.setLinea(estado);
                     return true;
