@@ -66,7 +66,7 @@ public class Servidor {
             e.printStackTrace();
             System.exit(1);
         }
-        //usuariosSistema.anadirUsuario(new Usuario("samu","samu222rn@gmail.com","1234"));
+        usuariosSistema.anadirUsuario(new Usuario("samu","samu222rn@gmail.com","1234"));
     }
 
     public static void iniciarRecursos(ListaUsuarios listaUsuarios){
@@ -90,6 +90,10 @@ public class Servidor {
             File carpetaPersonal = new File(recursos.getAbsolutePath()+"\\"+u.getNombre());
             if(!carpetaPersonal.exists()){
                 carpetaPersonal.mkdir();
+            }else{
+                for(File f:carpetaPersonal.listFiles()){
+                    u.anadirArchivo(f);
+                }
             }
         }
     }

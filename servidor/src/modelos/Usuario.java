@@ -1,5 +1,6 @@
 package modelos;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,5 +56,10 @@ public class Usuario {
 
     public List<Archivo> getArchivos(){
         return this.archivos;
+    }
+
+    public void anadirArchivo(File f){
+        Archivo a=new Archivo(f,new ArrayList<>());
+        archivos.add(a);
     }
 }

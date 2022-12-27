@@ -18,7 +18,7 @@ public class Archivo {
 
     public String getPath(){
         String path=this.file.getAbsolutePath();
-        return path.substring(path.indexOf("\\recursos\\"+1));
+        return path.substring(path.indexOf("\\recursos\\")+10);
     }
 
     public boolean tienePermisos(String user){

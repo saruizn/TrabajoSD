@@ -19,26 +19,34 @@ public class AtenderPeticion implements Runnable{
         String username=null;
         String pass=null;
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(client.getInputStream()));
-            BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(client.getOutputStream()))){
+            DataOutputStream writer=new DataOutputStream(client.getOutputStream())){
             username=reader.readLine();
             if(Servidor.usuariosSistema.getUsuario(username)==null){
                 Usuario nuevo=new Usuario(username,null,null);
-                writer.write("nuevo");
+                writer.writeBytes("nuevo"+"\n");
                 nuevo.setEmail(reader.readLine());
                 pass=reader.readLine();
                 nuevo.setContrasena(pass);
                 nuevo.setLinea(true);
                 Servidor.usuariosSistema.anadirUsuario(nuevo);
+                File carpetaPersonal = new File(Servidor.carpetaRecursos.getAbsolutePath()+"\\"+nuevo.getNombre());
+                if(!carpetaPersonal.exists()){
+                    carpetaPersonal.mkdir();
+                }else{
+                    for(File f:carpetaPersonal.listFiles()){
+                        nuevo.anadirArchivo(f);
+                    }
+                }
             }else{
-                writer.write("bienvenido");
+                writer.writeBytes("bienvenido"+"\n");
                 pass=reader.readLine();
                 while(!Servidor.usuariosSistema.actualizarSesion(username,pass,true)){
-                    writer.write("denegado");
+                    writer.writeBytes("denegado"+"\n");
                     pass=reader.readLine();
                 }
             }
             this.cliente=Servidor.usuariosSistema.getUsuario(username);
-            writer.write("inicio");
+            writer.writeBytes("inicio"+"\n");
             String opcion;
             while(!(opcion=reader.readLine()).equals("salir")){
                 switch(opcion){
@@ -78,7 +86,7 @@ public class AtenderPeticion implements Runnable{
 
     public void nombresArchivos(boolean esElCliente,Usuario user) throws IOException {
         String username=user.getNombre();
-        BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(this.client.getOutputStream()));
+        DataOutputStream writer=new DataOutputStream(this.client.getOutputStream());
         List<Archivo> archs;
         if(esElCliente){
             archs=user.getArchivos();
@@ -89,10 +97,10 @@ public class AtenderPeticion implements Runnable{
         for(Archivo a:archs){
             String descargas="";
             if(a.esPublico()) descargas=" | Descargas: "+a.getDescargas();
-            writer.write(i+": "+a.getPath()+descargas);
+            writer.writeBytes(i+": "+a.getPath()+descargas+"\n");
             i++;
         }
-        writer.write("fin");
+        writer.writeBytes("fin"+"\n");
     }
 
     public void subirArchivo(String nombre) throws IOException{
@@ -128,7 +136,7 @@ public class AtenderPeticion implements Runnable{
                 leidos = fis.read(buff);
             }
         }else{
-            dos.writeBytes("Error");
+            dos.writeBytes("Error"+"\n");
         }
 
     }
