@@ -66,7 +66,7 @@ public class Servidor {
             e.printStackTrace();
             System.exit(1);
         }
-        usuariosSistema.anadirUsuario(new Usuario("samu","samu222rn@gmail.com","1234"));
+        //usuariosSistema.anadirUsuario(new Usuario("samu","samu222rn@gmail.com","1234"));
     }
 
     public static void iniciarRecursos(ListaUsuarios listaUsuarios){

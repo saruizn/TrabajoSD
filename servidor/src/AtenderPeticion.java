@@ -9,6 +9,8 @@ public class AtenderPeticion implements Runnable{
 
     private Socket client;
 
+    private Usuario cliente;
+
     public AtenderPeticion(Socket client){
         this.client=client;
     }
@@ -35,23 +37,24 @@ public class AtenderPeticion implements Runnable{
                     pass=reader.readLine();
                 }
             }
-            Usuario usuario=Servidor.usuariosSistema.getUsuario(username);
+            this.cliente=Servidor.usuariosSistema.getUsuario(username);
             writer.write("inicio");
             String opcion;
             while(!(opcion=reader.readLine()).equals("salir")){
                 switch(opcion){
                     case "nombres":{
-                        this.nombresArchivos(usuario,true,"");
+                        this.nombresArchivos(true,this.cliente);
                     }break;
                     case "subir":{
-                        // crear funcion que cree el archivo en la nube
+                        subirArchivo(reader.readLine());
                     }break;
                     case "bajar":{
-                        // crear funcion que descargue el archivo de la nube
+                        String usuario=reader.readLine();
+                        bajarArchivo(reader.readLine(),usuario.equals("yes"));
                     }break;
                     case "buscar":{
                         String queryName=reader.readLine();
-                        this.nombresArchivos(Servidor.usuariosSistema.getUsuario(queryName),false,usuario.getNombre());
+                        this.nombresArchivos(false,Servidor.usuariosSistema.getUsuario(queryName));
                     }break;
                     case "eliminar":{
                         // crear una funcion que elimine de la nube un archivo
@@ -73,13 +76,14 @@ public class AtenderPeticion implements Runnable{
         }
     }
 
-    public void nombresArchivos(Usuario usuario,boolean esElCliente,String username) throws IOException {
-        BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+    public void nombresArchivos(boolean esElCliente,Usuario user) throws IOException {
+        String username=user.getNombre();
+        BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(this.client.getOutputStream()));
         List<Archivo> archs;
         if(esElCliente){
-            archs=usuario.getArchivos();
+            archs=user.getArchivos();
         }else{
-            archs=usuario.getArchivosCompartidos(username);
+            archs=user.getArchivosCompartidos(username);
         }
         int i=1;
         for(Archivo a:archs){
@@ -87,6 +91,44 @@ public class AtenderPeticion implements Runnable{
             if(a.esPublico()) descargas=" | Descargas: "+a.getDescargas();
             writer.write(i+": "+a.getPath()+descargas);
             i++;
+        }
+        writer.write("fin");
+    }
+
+    public void subirArchivo(String nombre) throws IOException{
+        DataInputStream dis=new DataInputStream(client.getInputStream());
+        String path=Servidor.carpetaRecursos.getPath()+"\\"+this.cliente.getNombre()+"\\"+nombre;
+        File f=new File(path);
+        if(!f.exists()){
+            f.createNewFile();
+        }
+        FileOutputStream fos=new FileOutputStream(f);
+        byte[] buff=new byte[1024];
+        int leidos= dis.read(buff);
+        while(leidos!= -1) {
+            fos.write(buff, 0, leidos);
+            leidos = dis.read(buff);
+        }
+    }
+
+    public void bajarArchivo(String nombre,boolean esElCliente) throws IOException{
+        DataOutputStream dos=new DataOutputStream(client.getOutputStream());
+        String path=Servidor.carpetaRecursos.getPath()+"\\";
+        if(esElCliente){
+            path=path+this.cliente.getNombre();
+        }
+        path=path+"\\"+nombre;
+        File f=new File(path);
+        if(f.exists()){
+            FileInputStream fis=new FileInputStream(f);
+            byte[] buff=new byte[1024];
+            int leidos= fis.read(buff);
+            while(leidos!= -1) {
+                dos.write(buff, 0, leidos);
+                leidos = fis.read(buff);
+            }
+        }else{
+            dos.writeBytes("Error");
         }
 
     }
