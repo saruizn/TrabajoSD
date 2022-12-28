@@ -3,6 +3,9 @@ import modelos.Usuario;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class AtenderPeticion implements Runnable{
@@ -128,13 +131,21 @@ public class AtenderPeticion implements Runnable{
         path=path+"\\"+nombre;
         File f=new File(path);
         if(f.exists()){
+            long size= Files.size(Paths.get(path));
+            System.out.println(path);
+            dos.writeBytes("OK"+"\n");
+            System.out.println(size);
+            dos.writeLong(size);
             FileInputStream fis=new FileInputStream(f);
             byte[] buff=new byte[1024];
             int leidos= fis.read(buff);
+            System.out.println("1");
             while(leidos!= -1) {
                 dos.write(buff, 0, leidos);
                 leidos = fis.read(buff);
             }
+            System.out.println("2");
+            fis.close();
         }else{
             dos.writeBytes("Error"+"\n");
         }
