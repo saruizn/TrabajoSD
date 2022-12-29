@@ -79,7 +79,8 @@ public class AtenderPeticion implements Runnable{
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Cliente desconectado");
+            //throw new RuntimeException(e);
         }finally{
             if(pass!=null){
                 Servidor.usuariosSistema.actualizarSesion(username,pass,false);
@@ -113,17 +114,20 @@ public class AtenderPeticion implements Runnable{
         if(!f.exists()){
             f.createNewFile();
         }
-        FileOutputStream fos=new FileOutputStream(f);
-        byte[] buff=new byte[1024];
-        int leidos= dis.read(buff);
-        while(leidos!= -1) {
-            fos.write(buff, 0, leidos);
-            leidos = dis.read(buff);
+        try(FileOutputStream fos=new FileOutputStream(f)){
+            long size=dis.readLong();
+            for(long l=0;l<size;l++){
+                fos.write(dis.readByte());
+            }
+        }catch(IOException e){
+            long size=dis.readLong();
+            e.printStackTrace();
         }
     }
 
     public void bajarArchivo(String nombre,boolean esElCliente) throws IOException{
         DataOutputStream dos=new DataOutputStream(client.getOutputStream());
+        BufferedReader reader=new BufferedReader(new InputStreamReader(client.getInputStream()));
         String path=Servidor.carpetaRecursos.getPath()+"\\";
         if(esElCliente){
             path=path+this.cliente.getNombre();
@@ -132,19 +136,17 @@ public class AtenderPeticion implements Runnable{
         File f=new File(path);
         if(f.exists()){
             long size= Files.size(Paths.get(path));
-            System.out.println(path);
             dos.writeBytes("OK"+"\n");
-            System.out.println(size);
-            dos.writeLong(size);
+            if(reader.readLine().equals("OK")){
+                dos.writeLong(size);
+            }
             FileInputStream fis=new FileInputStream(f);
             byte[] buff=new byte[1024];
             int leidos= fis.read(buff);
-            System.out.println("1");
             while(leidos!= -1) {
                 dos.write(buff, 0, leidos);
                 leidos = fis.read(buff);
             }
-            System.out.println("2");
             fis.close();
         }else{
             dos.writeBytes("Error"+"\n");
