@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
@@ -28,13 +29,23 @@ public class Main {
             }
             System.out.println("Bienvenido al MiNube, "+username);
             System.out.println("---------------------------------------------------------");
-            String opcion="";
+            String opcion;
+            String rutaDefecto;
+            /*
+            do{
+                System.out.println("Eescriba una ruta por defecto para guardar archivos descargados:");
+                rutaDefecto= sc.nextLine();
+            }while(!isValidPath(rutaDefecto));
+
+             */
+            rutaDefecto="C:\\Users\\samu2\\Desktop"; // C:\Users\samu2\Desktop\ejemploArchivo.txt
             do{
                 System.out.println("Elige una opcion:");
                 System.out.println("1-Ver la lista de mis archivos.");
                 System.out.println("2-Descargar un archivo de mi lista de archivos.");
                 System.out.println("3-Subir un archivo.");
-                System.out.println("4-Salir.");
+                System.out.println("4-Ver archivos de un usuario.");
+                System.out.println("5-Salir.");
                 System.out.println("---------------------------------------------------------");
                 opcion=sc.nextLine();
                 switch(opcion){
@@ -49,7 +60,7 @@ public class Main {
                         int num=0;
                         try{
                             num=Integer.parseInt(arch);
-                        }catch (NumberFormatException nfe){}
+                        }catch (NumberFormatException ignored){}
                         if(num!=0){
                             writer.writeBytes("nombres"+"\n");
                             boolean acabado=false;
@@ -61,6 +72,9 @@ public class Main {
                             }
                             if (!acabado) {
                                 arch=arch.substring(username.length()+4);
+                                if(arch.contains("| Descargas:")){
+                                    arch=arch.substring(0,arch.indexOf(" | "));
+                                }
                                 while(!reader.readLine().equals("fin"));
                             }
                         }
@@ -69,7 +83,15 @@ public class Main {
                         writer.writeBytes("yes"+"\n");
                         writer.writeBytes(arch+"\n");
                         if(reader.readLine().equals("OK")){
-                            File f=new File(System.getProperty("user.dir")+"\\"+arch);
+                            String route;
+                            do{
+                                System.out.println("Especifique la carpeta destino para el archivo (o Enter para usar la ruta por defecto).");
+                                route=sc.nextLine();
+                                if(route.equals("")){
+                                    route=rutaDefecto;
+                                }
+                            }while(!isValidPath(route));
+                            File f=new File(route+"\\"+arch);
                             if(!f.exists()){
                                 f.createNewFile();
                             }
@@ -111,13 +133,69 @@ public class Main {
                         }else{
                             System.out.println("Archivo no encontrado.");
                         }
-                    }
+                    }break;
+                    case "4":{
+                        writer.writeBytes("buscar"+"\n");
+                        System.out.println("Introduce el nombre del usuario a buscar:");
+                        String name=sc.nextLine();
+                        writer.writeBytes(name+"\n");
+                        if(reader.readLine().equals("OK")){
+                            String line;
+                            while(!(line=reader.readLine()).equals("fin")) System.out.println(line);
+                            System.out.println("Escribe el nombre de un archivo para descargarlo, pulsa Enter para volver.");
+                            String arch=sc.nextLine();
+                            if(!arch.equals("")){
+                                writer.writeBytes("bajar"+"\n");
+                                writer.writeBytes("no"+"\n");
+                                writer.writeBytes(name+"\n");
+                                writer.writeBytes(arch+"\n");
+                                if(reader.readLine().equals("OK")){
+                                    String route;
+                                    do{
+                                        System.out.println("Especifique la carpeta destino para el archivo (o Enter para usar la ruta por defecto).");
+                                        route=sc.nextLine();
+                                        if(route.equals("")){
+                                            route=rutaDefecto;
+                                        }
+                                    }while(!isValidPath(route));
+                                    File f=new File(route+"\\"+arch);
+                                    if(!f.exists()){
+                                        f.createNewFile();
+                                    }
+                                    try(FileOutputStream fos=new FileOutputStream(f)){
+                                        DataInputStream dis=new DataInputStream(con.getInputStream());
+                                        writer.writeBytes("OK"+"\n");
+                                        long size=dis.readLong();
+                                        for(long l=0;l<size;l++){
+                                            fos.write(dis.readByte());
+                                        }
+                                        System.out.println("Archivo descargado. Tamaño: "+size+" bytes.");
+                                    }catch(IOException e){
+                                        e.printStackTrace();
+                                    }
+                                }else{
+                                    System.out.println("Error al recuperar el archivo.");
+                                }
+                            }
+                        }else{
+                            System.out.println("Usuario no encontrado");
+                        }
+                    }break;
                 }
                 System.out.println("---------------------------------------------------------");
-            }while(!opcion.equals("4"));
+            }while(!opcion.equals("5"));
             writer.writeBytes("salir"+"\n");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static boolean isValidPath(String path) {
+        try {
+            Paths.get(path);
+        } catch (InvalidPathException | NullPointerException ex) {
+            return false;
+        }
+        return true;
     }
 }

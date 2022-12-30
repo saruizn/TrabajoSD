@@ -61,11 +61,26 @@ public class AtenderPeticion implements Runnable{
                     }break;
                     case "bajar":{
                         String usuario=reader.readLine();
-                        bajarArchivo(reader.readLine(),usuario.equals("yes"));
+                        if(usuario.equals("yes")){
+                            bajarArchivo(reader.readLine(), true);
+                        }else{
+                            Usuario u=Servidor.usuariosSistema.getUsuario(reader.readLine());
+                            String arch=reader.readLine();
+                            for(Archivo a:u.getArchivosCompartidos(cliente.getNombre())){
+                                String ar=a.getPath();
+                                if(a.tienePermisos(cliente.getNombre()) && a.getPath().equals(u.getNombre()+"\\"+arch)) bajarArchivo(a.getPath(), false);break;
+                            }
+                            writer.writeBytes("Error"+"\n");
+                        }
                     }break;
                     case "buscar":{
-                        String queryName=reader.readLine();
-                        this.nombresArchivos(false,Servidor.usuariosSistema.getUsuario(queryName));
+                        Usuario u=Servidor.usuariosSistema.getUsuario(reader.readLine());
+                        if(u!=null){
+                            writer.writeBytes("OK"+"\n");
+                            this.nombresArchivos(false,u);
+                        }else{
+                            writer.writeBytes("Error"+"\n");
+                        }
                     }break;
                     case "eliminar":{
                         // crear una funcion que elimine de la nube un archivo
@@ -119,6 +134,7 @@ public class AtenderPeticion implements Runnable{
             for(long l=0;l<size;l++){
                 fos.write(dis.readByte());
             }
+            cliente.anadirArchivo(f);
         }catch(IOException e){
             long size=dis.readLong();
             e.printStackTrace();
@@ -130,9 +146,9 @@ public class AtenderPeticion implements Runnable{
         BufferedReader reader=new BufferedReader(new InputStreamReader(client.getInputStream()));
         String path=Servidor.carpetaRecursos.getPath()+"\\";
         if(esElCliente){
-            path=path+this.cliente.getNombre();
+            path=path+this.cliente.getNombre()+"\\";
         }
-        path=path+"\\"+nombre;
+        path=path+nombre;
         File f=new File(path);
         if(f.exists()){
             long size= Files.size(Paths.get(path));
