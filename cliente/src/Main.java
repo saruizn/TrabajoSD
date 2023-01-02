@@ -31,14 +31,11 @@ public class Main {
             System.out.println("---------------------------------------------------------");
             String opcion;
             String rutaDefecto;
-            /*
             do{
-                System.out.println("Eescriba una ruta por defecto para guardar archivos descargados:");
+                System.out.println("Escriba una ruta por defecto para guardar archivos descargados:");
                 rutaDefecto= sc.nextLine();
             }while(!isValidPath(rutaDefecto));
-
-             */
-            rutaDefecto="C:\\Users\\samu2\\Desktop"; // C:\Users\samu2\Desktop\ejemploArchivo.txt
+            //rutaDefecto="C:\\Users\\samu2\\Desktop"; // C:\Users\samu2\Desktop\ejemploArchivo.txt
             do{
                 System.out.println("Elige una opcion:");
                 System.out.println("1-Ver la lista de mis archivos.");
@@ -240,7 +237,8 @@ public class Main {
         try{
             num=Integer.parseInt(arch);
         }catch (NumberFormatException ignored){}
-        if(num!=0){
+        boolean acabado=false;
+        if(num>0){
             if(isUser){
                 writer.writeBytes("nombres"+"\n");
             }else{
@@ -248,7 +246,6 @@ public class Main {
                 writer.writeBytes(username+"\n");
                 reader.readLine();
             }
-            boolean acabado=false;
             int i=0;
             while(i<num && !acabado){
                 arch=reader.readLine();
@@ -262,8 +259,10 @@ public class Main {
                 }
                 while(!reader.readLine().equals("fin"));
             }
+        }else{
+            acabado=true;
         }
-        if(arch==null) arch="";
+        if(acabado) arch="";
         return arch;
     }
 }
