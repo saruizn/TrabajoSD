@@ -71,8 +71,11 @@ public class Servidor {
 
     public static void iniciarRecursos(ListaUsuarios listaUsuarios){
         Scanner sc=new Scanner(System.in);
-        System.out.println("Especifique la ruta del directorio \"recursos\" (Deje vacío para usar el predefinido en la carpeta del proyecto.)");
-        String recursosPath=sc.nextLine();
+        String recursosPath;
+        do{
+            System.out.println("Especifique la ruta del directorio \"recursos\" (Deje vacío para usar el predefinido en la carpeta del proyecto.)");
+            recursosPath=sc.nextLine();
+        }while(!recursosPath.endsWith("recursos") && !recursosPath.equals(""));
         File recursos=null;
         if(recursosPath.equals("")){
             recursos = new File(System.getProperty("user.dir")+"\\recursos");
