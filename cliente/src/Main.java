@@ -23,7 +23,7 @@ public class Main {
             String pass=sc.nextLine();
             writer.writeBytes(pass+"\n");
             while(reader.readLine().equals("denegado")){
-                System.out.println("Contraseña incorrecta.");
+                System.out.println("Denegado.");
                 pass=sc.nextLine();
                 writer.writeBytes(pass+"\n");
             }
@@ -45,40 +45,27 @@ public class Main {
                 System.out.println("2-Descargar un archivo de mi lista de archivos.");
                 System.out.println("3-Subir un archivo.");
                 System.out.println("4-Ver archivos de un usuario.");
-                System.out.println("5-Salir.");
-                System.out.println("---------------------------------------------------------");
+                System.out.println("5-Eliminar un archivo de la nube.");
+                System.out.println("6-Publicar/despublicar un archivo.");
+                System.out.println("7-Salir.");
                 opcion=sc.nextLine();
+                System.out.println("---------------------------------------------------------");
                 switch(opcion){
                     case "1":{
                         writer.writeBytes("nombres"+"\n");
-                        String line;
-                        while(!(line=reader.readLine()).equals("fin")) System.out.println(line);
-                    }break;
-                    case "2":{
-                        System.out.println("Escriba el nombre del archivo o su numero en la lista.");
-                        String arch=sc.nextLine();
-                        int num=0;
-                        try{
-                            num=Integer.parseInt(arch);
-                        }catch (NumberFormatException ignored){}
-                        if(num!=0){
-                            writer.writeBytes("nombres"+"\n");
-                            boolean acabado=false;
-                            int i=0;
-                            while(i<num && !acabado){
-                                arch=reader.readLine();
-                                if(arch.equals("fin")) acabado=true;
-                                i++;
-                            }
-                            if (!acabado) {
-                                arch=arch.substring(username.length()+4);
-                                if(arch.contains("| Descargas:")){
-                                    arch=arch.substring(0,arch.indexOf(" | "));
-                                }
-                                while(!reader.readLine().equals("fin"));
+                        String line=reader.readLine();
+                        if(line.equals("fin")){
+                            System.out.println("No existen archivos.");
+                        }else{
+                            while(!line.equals("fin")){
+                                System.out.println(line);
+                                line=reader.readLine();
                             }
                         }
-                        if(arch==null) arch="";
+                    }break;
+                    case "2":{
+                        System.out.println("Escriba el nombre del archivo a descargar (o su numero en la lista).");
+                        String arch=getArchivo(sc,reader,writer,username,true);
                         writer.writeBytes("bajar"+"\n");
                         writer.writeBytes("yes"+"\n");
                         writer.writeBytes(arch+"\n");
@@ -92,6 +79,10 @@ public class Main {
                                 }
                             }while(!isValidPath(route));
                             File f=new File(route+"\\"+arch);
+                            File c=new File(route);
+                            if(!c.exists()){
+                                c.mkdirs();
+                            }
                             if(!f.exists()){
                                 f.createNewFile();
                             }
@@ -140,51 +131,95 @@ public class Main {
                         String name=sc.nextLine();
                         writer.writeBytes(name+"\n");
                         if(reader.readLine().equals("OK")){
-                            String line;
-                            while(!(line=reader.readLine()).equals("fin")) System.out.println(line);
-                            System.out.println("Escribe el nombre de un archivo para descargarlo, pulsa Enter para volver.");
-                            String arch=sc.nextLine();
-                            if(!arch.equals("")){
-                                writer.writeBytes("bajar"+"\n");
-                                writer.writeBytes("no"+"\n");
-                                writer.writeBytes(name+"\n");
-                                writer.writeBytes(arch+"\n");
-                                if(reader.readLine().equals("OK")){
-                                    String route;
-                                    do{
-                                        System.out.println("Especifique la carpeta destino para el archivo (o Enter para usar la ruta por defecto).");
-                                        route=sc.nextLine();
-                                        if(route.equals("")){
-                                            route=rutaDefecto;
-                                        }
-                                    }while(!isValidPath(route));
-                                    File f=new File(route+"\\"+arch);
-                                    if(!f.exists()){
-                                        f.createNewFile();
-                                    }
-                                    try(FileOutputStream fos=new FileOutputStream(f)){
-                                        DataInputStream dis=new DataInputStream(con.getInputStream());
-                                        writer.writeBytes("OK"+"\n");
-                                        long size=dis.readLong();
-                                        for(long l=0;l<size;l++){
-                                            fos.write(dis.readByte());
-                                        }
-                                        System.out.println("Archivo descargado. Tamaño: "+size+" bytes.");
-                                    }catch(IOException e){
-                                        e.printStackTrace();
-                                    }
-                                }else{
-                                    System.out.println("Error al recuperar el archivo.");
+                            boolean tiene=false;
+                            String line=reader.readLine();
+                            if(!line.equals("fin")){
+                                tiene=true;
+                                while(!line.equals("fin")){
+                                    System.out.println(line);
+                                    line=reader.readLine();
                                 }
+                            }
+                            if(tiene){
+                                System.out.println("Escribe el nombre de un archivo para descargarlo (o su numero en la lista), pulsa Enter para volver.");
+                                String arch=getArchivo(sc,reader,writer,name,false);
+                                if(!arch.equals("")){
+                                    writer.writeBytes("bajar"+"\n");
+                                    writer.writeBytes("no"+"\n");
+                                    writer.writeBytes(name+"\n");
+                                    writer.writeBytes(arch+"\n");
+                                    if(reader.readLine().equals("OK")){
+                                        String route;
+                                        do{
+                                            System.out.println("Especifique la carpeta destino para el archivo (o Enter para usar la ruta por defecto).");
+                                            route=sc.nextLine();
+                                            if(route.equals("")){
+                                                route=rutaDefecto;
+                                            }
+                                        }while(!isValidPath(route));
+                                        File f=new File(route+"\\"+arch);
+                                        File c=new File(route);
+                                        if(!c.exists()){
+                                            c.mkdirs();
+                                        }
+                                        if(!f.exists()){
+                                            f.createNewFile();
+                                        }
+                                        try(FileOutputStream fos=new FileOutputStream(f)){
+                                            DataInputStream dis=new DataInputStream(con.getInputStream());
+                                            writer.writeBytes("OK"+"\n");
+                                            long size=dis.readLong();
+                                            for(long l=0;l<size;l++){
+                                                fos.write(dis.readByte());
+                                            }
+                                            System.out.println("Archivo descargado. Tamaño: "+size+" bytes.");
+                                        }catch(IOException e){
+                                            e.printStackTrace();
+                                        }
+                                    }else{
+                                        System.out.println("Error al recuperar el archivo.");
+                                    }
+                                }
+                            }else{
+                                System.out.println("El usuario no tiene archivos publicos.");
                             }
                         }else{
                             System.out.println("Usuario no encontrado");
                         }
                     }break;
+                    case "5":{
+                        System.out.println("Introduzca el nombre del archivo a eliminar (o su numero en la lista).");
+                        String fileName=getArchivo(sc,reader,writer,username,true);
+                        fileName=username+"\\"+fileName;
+                        writer.writeBytes("eliminar"+"\n");
+                        writer.writeBytes(fileName+"\n");
+                        if(reader.readLine().equals("OK")){
+                            System.out.println("Archivo eliminado.");
+                        }else{
+                            System.out.println("Archivo no encontrado.");
+                        }
+                    }break;
+                    case "6":{
+                        System.out.println("Introduzca el nombre del archivo a publicar/despublicar (o su numero en la lista).");
+                        String fileName=getArchivo(sc,reader,writer,username,true);
+                        fileName=username+"\\"+fileName;
+                        writer.writeBytes("publicar"+"\n");
+                        writer.writeBytes(fileName+"\n");
+                        if(reader.readLine().equals("OK")){
+                            if(reader.readLine().equals("Publico")){
+                                System.out.println("El archivo ahora es público.");
+                            }else{
+                                System.out.println("El archivo ahora es privado.");
+                            }
+                        }else{
+                            System.out.println("Archivo no encontrado.");
+                        }
+                    }break;
                 }
                 System.out.println("---------------------------------------------------------");
-            }while(!opcion.equals("5"));
+            }while(!opcion.equals("7"));
             writer.writeBytes("salir"+"\n");
+            System.out.println("Hasta la próxima.");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -197,5 +232,38 @@ public class Main {
             return false;
         }
         return true;
+    }
+
+    public static String getArchivo(Scanner sc, BufferedReader reader,DataOutputStream writer,String username,boolean isUser) throws IOException{
+        String arch=sc.nextLine();
+        int num=0;
+        try{
+            num=Integer.parseInt(arch);
+        }catch (NumberFormatException ignored){}
+        if(num!=0){
+            if(isUser){
+                writer.writeBytes("nombres"+"\n");
+            }else{
+                writer.writeBytes("buscar"+"\n");
+                writer.writeBytes(username+"\n");
+                reader.readLine();
+            }
+            boolean acabado=false;
+            int i=0;
+            while(i<num && !acabado){
+                arch=reader.readLine();
+                if(arch.equals("fin")) acabado=true;
+                i++;
+            }
+            if (!acabado) {
+                arch=arch.substring(username.length()+4);
+                if(arch.contains("| Descargas:")){
+                    arch=arch.substring(0,arch.indexOf(" | "));
+                }
+                while(!reader.readLine().equals("fin"));
+            }
+        }
+        if(arch==null) arch="";
+        return arch;
     }
 }

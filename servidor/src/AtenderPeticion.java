@@ -62,19 +62,32 @@ public class AtenderPeticion implements Runnable{
                     case "bajar":{
                         String usuario=reader.readLine();
                         if(usuario.equals("yes")){
-                            bajarArchivo(reader.readLine(), true);
+                            try{
+                                bajarArchivo(reader.readLine(), true);
+                            }catch(IOException e){
+                                writer.writeBytes("Error"+"\n");
+                            }
+
                         }else{
                             Usuario u=Servidor.usuariosSistema.getUsuario(reader.readLine());
                             String arch=reader.readLine();
+                            boolean found=false;
                             for(Archivo a:u.getArchivosCompartidos(cliente.getNombre())){
                                 String ar=a.getPath();
-                                if(a.tienePermisos(cliente.getNombre()) && a.getPath().equals(u.getNombre()+"\\"+arch)) bajarArchivo(a.getPath(), false);break;
+                                if(a.tienePermisos(cliente.getNombre()) && a.getPath().equals(u.getNombre()+"\\"+arch)){
+                                    try{
+                                        bajarArchivo(a.getPath(), false);
+                                        a.descarga();
+                                        found=true;
+                                    }catch(IOException ignored){}
+                                }
                             }
-                            writer.writeBytes("Error"+"\n");
+                            if(!found) writer.writeBytes("Error"+"\n");
                         }
                     }break;
                     case "buscar":{
-                        Usuario u=Servidor.usuariosSistema.getUsuario(reader.readLine());
+                        String user=reader.readLine();
+                        Usuario u=Servidor.usuariosSistema.getUsuario(user);
                         if(u!=null){
                             writer.writeBytes("OK"+"\n");
                             this.nombresArchivos(false,u);
@@ -84,9 +97,40 @@ public class AtenderPeticion implements Runnable{
                     }break;
                     case "eliminar":{
                         // crear una funcion que elimine de la nube un archivo
+                        String fileName=reader.readLine();
+                        Archivo eliminar=null;
+                        for(Archivo a:this.cliente.getArchivos()){
+                            if(a.getPath().equals(fileName)){
+                                eliminar=a;
+                            }
+                        }
+                        if(eliminar!=null){
+                            this.cliente.getArchivos().remove(eliminar);
+                            eliminar.borrar();
+                            writer.writeBytes("OK"+"\n");
+                        }else{
+                            writer.writeBytes("Error"+"\n");
+                        }
                     }break;
                     case "publicar":{
-                        // crear una funcion que establezca un archivo del usuario como publico
+                        String fileName=reader.readLine();
+                        Archivo publicar=null;
+                        for(Archivo a:this.cliente.getArchivos()){
+                            if(a.getPath().equals(fileName)){
+                                publicar=a;
+                            }
+                        }
+                        if(publicar!=null){
+                            publicar.setPublico(!publicar.esPublico());
+                            writer.writeBytes("OK"+"\n");
+                            if(publicar.esPublico()){
+                                writer.writeBytes("Publico"+"\n");
+                            }else{
+                                writer.writeBytes("Privado"+"\n");
+                            }
+                        }else{
+                            writer.writeBytes("Error"+"\n");
+                        }
                     }break;
                     case "compartir":{
                         // crear una funcion que comparta un archivo con x usuario
@@ -94,12 +138,12 @@ public class AtenderPeticion implements Runnable{
                 }
             }
         } catch (IOException e) {
-            System.out.println("Cliente desconectado");
-            //throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }finally{
             if(pass!=null){
                 Servidor.usuariosSistema.actualizarSesion(username,pass,false);
             }
+            System.out.println("Cliente desconectado");
         }
     }
 
@@ -136,7 +180,7 @@ public class AtenderPeticion implements Runnable{
             }
             cliente.anadirArchivo(f);
         }catch(IOException e){
-            long size=dis.readLong();
+            dis.readLong();
             e.printStackTrace();
         }
     }
@@ -151,12 +195,12 @@ public class AtenderPeticion implements Runnable{
         path=path+nombre;
         File f=new File(path);
         if(f.exists()){
+            FileInputStream fis=new FileInputStream(f);
             long size= Files.size(Paths.get(path));
             dos.writeBytes("OK"+"\n");
             if(reader.readLine().equals("OK")){
                 dos.writeLong(size);
             }
-            FileInputStream fis=new FileInputStream(f);
             byte[] buff=new byte[1024];
             int leidos= fis.read(buff);
             while(leidos!= -1) {

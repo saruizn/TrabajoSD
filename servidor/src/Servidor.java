@@ -22,6 +22,7 @@ public class Servidor {
         try{
             ServerSocket ss=new ServerSocket(55555);
             ExecutorService pool = Executors.newCachedThreadPool();
+            System.out.println("Servidor iniciado.");
             while(true){
                 try{
                     Socket client=ss.accept();
@@ -66,7 +67,6 @@ public class Servidor {
             e.printStackTrace();
             System.exit(1);
         }
-        usuariosSistema.anadirUsuario(new Usuario("samu","samu222rn@gmail.com","1234"));
     }
 
     public static void iniciarRecursos(ListaUsuarios listaUsuarios){

@@ -53,4 +53,13 @@ public class Archivo {
         return this.publico;
     }
 
+    public boolean borrar(){
+        return this.file.delete();
+    }
+
+    public boolean equals(Object o){
+        Archivo a=(Archivo)o;
+        return this.file.getAbsolutePath().equals(a.file.getAbsolutePath());
+    }
+
 }
