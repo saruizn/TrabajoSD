@@ -44,7 +44,8 @@ public class Main {
                 System.out.println("4-Ver archivos de un usuario.");
                 System.out.println("5-Eliminar un archivo de la nube.");
                 System.out.println("6-Publicar/despublicar un archivo.");
-                System.out.println("7-Salir.");
+                System.out.println("7-Compartir/descomaprtir un archivo con un usuario.");
+                System.out.println("8-Salir.");
                 opcion=sc.nextLine();
                 System.out.println("---------------------------------------------------------");
                 switch(opcion){
@@ -212,13 +213,26 @@ public class Main {
                             System.out.println("Archivo no encontrado.");
                         }
                     }break;
+                    case "7":{
+                        System.out.println("Escribe el nombre del archivo a compartir (o su numero en la lista)");
+                        String arch=getArchivo(sc,reader,writer,username,true);
+                        System.out.println("Escribe el nombre del usuario a compartir/descompartir.");
+                        String name=sc.nextLine();
+                        writer.writeBytes("compartir"+"\n");
+                        writer.writeBytes(arch+"\n");
+                        writer.writeBytes(name+"\n");
+                        String result=reader.readLine();
+                        if(result.equals("Error")) System.out.println("Hubo un error, puede que no exista el archivo o el usuario introducidos.");
+                        if(result.equals("anadido")) System.out.println("El usuario "+name+" ahora tiene acceso al archivo "+arch);
+                        if(result.equals("eliminado")) System.out.println("El usuario "+name+" ya no tiene acceso al archivo "+arch);
+                    }break;
                 }
                 System.out.println("---------------------------------------------------------");
-            }while(!opcion.equals("7"));
+            }while(!opcion.equals("8"));
             writer.writeBytes("salir"+"\n");
             System.out.println("Hasta la próxima.");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Error, servidor fuera de linea.");
         }
     }
 

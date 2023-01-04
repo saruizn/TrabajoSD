@@ -4,7 +4,6 @@ import modelos.Usuario;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -73,7 +72,6 @@ public class AtenderPeticion implements Runnable{
                             String arch=reader.readLine();
                             boolean found=false;
                             for(Archivo a:u.getArchivosCompartidos(cliente.getNombre())){
-                                String ar=a.getPath();
                                 if(a.tienePermisos(cliente.getNombre()) && a.getPath().equals(u.getNombre()+"\\"+arch)){
                                     try{
                                         bajarArchivo(a.getPath(), false);
@@ -96,7 +94,6 @@ public class AtenderPeticion implements Runnable{
                         }
                     }break;
                     case "eliminar":{
-                        // crear una funcion que elimine de la nube un archivo
                         String fileName=reader.readLine();
                         Archivo eliminar=null;
                         for(Archivo a:this.cliente.getArchivos()){
@@ -133,7 +130,29 @@ public class AtenderPeticion implements Runnable{
                         }
                     }break;
                     case "compartir":{
-                        // crear una funcion que comparta un archivo con x usuario
+                        String file= reader.readLine();
+                        String name= reader.readLine();
+                        File f=new File(Servidor.carpetaRecursos.getPath()+"\\"+cliente.getNombre()+"\\"+file);
+                        if(f.exists() && f.isFile() && Servidor.usuariosSistema.getUsuario(name)!=null){
+                            boolean anadido=false;
+                            for(Archivo a:cliente.getArchivos()){
+                                if(a.getPath().equals(username+"\\"+file)){
+                                    if(a.tienePermisos(name)){
+                                        a.eliminarUsuario(name);
+                                    }else{
+                                        a.anadirUsuario(name);
+                                        anadido=true;
+                                    }
+                                }
+                            }
+                            if(anadido){
+                                writer.writeBytes("anadido"+"\n");
+                            }else{
+                                writer.writeBytes("eliminado"+"\n");
+                            }
+                        }else{
+                            writer.writeBytes("Error"+"\n");
+                        }
                     }break;
                 }
             }
@@ -148,13 +167,12 @@ public class AtenderPeticion implements Runnable{
     }
 
     public void nombresArchivos(boolean esElCliente,Usuario user) throws IOException {
-        String username=user.getNombre();
         DataOutputStream writer=new DataOutputStream(this.client.getOutputStream());
         List<Archivo> archs;
         if(esElCliente){
             archs=user.getArchivos();
         }else{
-            archs=user.getArchivosCompartidos(username);
+            archs=user.getArchivosCompartidos(cliente.getNombre());
         }
         int i=1;
         for(Archivo a:archs){

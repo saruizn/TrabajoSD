@@ -59,7 +59,6 @@ public class Servidor {
                 System.exit(1);
             }
         }
-        ListaUsuarios listaUsuarios=null;
         try {
             usuariosSistema=new ListaUsuarios(usuarios);
 

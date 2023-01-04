@@ -23,11 +23,9 @@ public class Archivo {
 
     public boolean tienePermisos(String user){
         if(this.publico) return true;
-        if(!this.usuariosCompartido.isEmpty()){
-            for(String s: this.usuariosCompartido){
-                if(s.equals(user)){
-                    return true;
-                }
+        for(String s: this.usuariosCompartido){
+            if(s.equals(user)){
+                return true;
             }
         }
         return false;
@@ -35,6 +33,10 @@ public class Archivo {
 
     public void anadirUsuario(String user){
         this.usuariosCompartido.add(user);
+    }
+
+    public void eliminarUsuario(String user){
+        this.usuariosCompartido.remove(user);
     }
 
     public void descarga(){
