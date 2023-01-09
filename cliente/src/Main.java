@@ -273,8 +273,6 @@ public class Main {
                 }
                 while(!reader.readLine().equals("fin"));
             }
-        }else{
-            acabado=true;
         }
         if(acabado) arch="";
         return arch;
